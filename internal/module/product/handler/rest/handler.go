@@ -13,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 )
-
 type productHandler struct {	
 	service ports.ProductService
 }
@@ -30,11 +29,11 @@ func NewProductHandler() *productHandler {
 }
 
 func (h *productHandler) Register(router fiber.Router) {
-	router.Post("/product", middleware.UserIdHeader, h.CreateProduct)
+	router.Post("/product", middleware.AuthBearer, h.CreateProduct)
 	router.Get("/product/:id", h.GetDetailProduct)
-	router.Patch("/product/:id", middleware.UserIdHeader, h.UpdateProduct)
-	router.Delete("/product/:id", middleware.UserIdHeader, h.DeleteProduct)
-	router.Get("/product", middleware.UserIdHeader, h.GetProducts)
+	router.Patch("/product/:id", middleware.AuthBearer, h.UpdateProduct)
+	router.Delete("/product/:id", middleware.AuthBearer, h.DeleteProduct)
+	router.Get("/product", middleware.AuthBearer, h.GetProducts)
 }
 
 func (h *productHandler) CreateProduct(c *fiber.Ctx) error {
@@ -42,7 +41,6 @@ func (h *productHandler) CreateProduct(c *fiber.Ctx) error {
 		req = new(entity.CreateProductRequest)
 		ctx = c.Context()
 		v = adapter.Adapters.Validator
-		l = middleware.GetLocals(c)
 	)
 
 	if err := c.BodyParser(req); err != nil {
@@ -50,7 +48,7 @@ func (h *productHandler) CreateProduct(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(response.Error(err))
 	}
 
-	req.UserId = l.UserId
+	// req.UserId = c.Params("user_id")
 
 	if err := v.Validate(req); err != nil {
 		log.Warn().Err(err).Any("payload", req).Msg("handler::CreateProduct - Validate request body")

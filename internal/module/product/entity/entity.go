@@ -3,7 +3,7 @@ package entity
 import "codebase-app/pkg/types"
 
 type CreateProductRequest struct {
-	UserId string `query:"user_id" validate:"required,uuid"`
+	// UserId string `validate:"validate"`
 
 	Name        string  `json:"name" validate:"required,min=3,max=100" db:"name"`
 	Price       float64 `json:"price" validate:"required" db:"price"`
