@@ -38,6 +38,10 @@ func (s *Seed) run(table string, total int) {
 		s.usersSeed(total)
 	case "category":
 		s.categorySeed()
+	case "shop":
+		s.shopsSeed(total)
+	case "product":
+		s.productsSeed(total)
 	case "all":
 		s.rolesSeed()
 		s.usersSeed(total)
@@ -270,4 +274,126 @@ func (s *Seed) categorySeed() {
 	}
 
 	log.Info().Msg("category table seeded successfully")
+}
+
+func (s *Seed) shopsSeed(total int) {
+	tx, err := s.db.BeginTxx(context.Background(), nil)
+	if err != nil {
+		log.Error().Err(err).Msg("Error starting transaction")
+		return
+	}
+	defer func() {
+		if err != nil {
+			err = tx.Rollback()
+			log.Error().Err(err).Msg("Error rolling back transaction")
+			return
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			log.Error().Err(err).Msg("Error committing transaction")
+		}
+	}()
+
+	var (
+		shopMaps = make([]map[string]any, 0)
+		// users   = make([]string, 0)
+	)
+
+	// err = s.db.Select(&users, `SELECT id FROM users`)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Error selecting users")
+	// 	return
+	// }
+	user_id := "e7544cc7-f561-4fcc-8226-f1ce0b3edf0f"
+
+	for i := 0; i < total; i++ {
+		dataShopToInsert := make(map[string]any)
+		dataShopToInsert["name"] = gofakeit.Company()
+		dataShopToInsert["description"] = gofakeit.Sentence(10)
+		dataShopToInsert["terms"] = gofakeit.Sentence(10)
+		// dataShopToInsert["user_id"] = users[gofakeit.Number(0, len(users)-1)]
+		dataShopToInsert["user_id"] = user_id
+
+		shopMaps = append(shopMaps, dataShopToInsert)
+	}
+
+	_, err = tx.NamedExec(`
+		INSERT INTO shops (name, description, terms, user_id)
+		VALUES (:name, :description, :terms, :user_id)
+	`, shopMaps)
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating shops")
+		return
+	}
+
+	log.Info().Msg("shops table seeded successfully")
+}
+
+func (s *Seed) productsSeed(total int) {
+	tx, err := s.db.BeginTxx(context.Background(), nil)
+	if err != nil {
+		log.Error().Err(err).Msg("Error starting transaction")
+		return
+	}
+	defer func() {
+		if err != nil {
+			err = tx.Rollback()
+			log.Error().Err(err).Msg("Error rolling back transaction")
+			return
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			log.Error().Err(err).Msg("Error committing transaction")
+		}
+	}()
+
+	type generalData struct {
+		Id       string `db:"id"`
+	}
+
+	var (
+		categories = make([]generalData, 0)
+		productMaps = make([]map[string]any, 0)
+		shops = make([]generalData, 0)
+	)
+
+	err = s.db.Select(&categories, `SELECT id FROM category`)
+	if err != nil {
+		log.Error().Err(err).Msg("Error selecting categories")
+		return
+	}
+
+	err = s.db.Select(&shops, `SELECT id FROM shops`)
+	if err != nil {
+		log.Error().Err(err).Msg("Error selecting shops")
+		return
+	}
+
+	for i := 0; i < total; i++ {
+		selectedCategory := categories[gofakeit.Number(0, len(categories)-1)]
+		selectedShop := shops[gofakeit.Number(0, len(shops)-1)]
+
+		dataProductToInsert := make(map[string]any)
+		dataProductToInsert["category_id"] = selectedCategory.Id
+		dataProductToInsert["name"] = gofakeit.ProductName()
+		dataProductToInsert["brand"] = gofakeit.ProductName()
+		dataProductToInsert["price"] = gofakeit.Price(10000, 500000)
+		dataProductToInsert["stock"] = gofakeit.Number(10, 500)
+		dataProductToInsert["shop_id"] = selectedShop.Id
+
+		productMaps = append(productMaps, dataProductToInsert)
+	}
+
+	_, err = tx.NamedExec(`
+		INSERT INTO product (category_id, name, brand, price, stock, shop_id)
+		VALUES (:category_id, :name, :brand, :price, :stock, :shop_id)	
+	`, productMaps)
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating products")
+		return
+	}
+
+	log.Info().Msg("products table seeded successfully")
 }

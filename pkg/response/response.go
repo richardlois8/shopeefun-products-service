@@ -11,9 +11,9 @@ func Success(data any, message string) Response {
 		msg = message
 	}
 	return Response{
-		"success": true,
-		"message": msg,
 		"data":    data,
+		"message": msg,
+		"success": true,
 	}
 }
 

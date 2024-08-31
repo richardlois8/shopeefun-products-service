@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS product (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
+    brand VARCHAR(100) NOT NULL,
     price DECIMAL(12, 4) NOT NULL DEFAULT 0.0,
     category_id UUID NOT NULL,
     stock INT NOT NULL DEFAULT 0,
