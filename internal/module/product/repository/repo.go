@@ -24,11 +24,12 @@ func NewProductRepository(db *sqlx.DB) *productRepository {
 func (r *productRepository) CreateProduct(ctx context.Context, req *entity.CreateProductRequest) (*entity.CreateProductResponse, error) {
 	var resp = new(entity.CreateProductResponse)
 	var (
-		query = `INSERT INTO product (name, price, stock, category_id, shop_id) VALUES (?, ?, ?, ?, ?) RETURNING id`
+		query = `INSERT INTO product (name, brand, price, stock, category_id, shop_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING id`
 	)
 
 	err := r.db.QueryRowContext(ctx, r.db.Rebind(query),
 		req.Name,
+		req.Brand,
 		req.Price,
 		req.Stock,
 		req.CategoryId,
@@ -95,6 +96,7 @@ func (r *productRepository) UpdateProduct(ctx context.Context, req *entity.Updat
 	var (
 		query = `UPDATE product 
 			SET name=?, 
+				brand=?,
 				price=?, 
 				stock=?, 
 				category_id=?, 
@@ -107,6 +109,7 @@ func (r *productRepository) UpdateProduct(ctx context.Context, req *entity.Updat
 
 	err := r.db.QueryRowContext(ctx, r.db.Rebind(query),
 		req.Name,
+		req.Brand,
 		req.Price,
 		req.Stock,
 		req.CategoryId,

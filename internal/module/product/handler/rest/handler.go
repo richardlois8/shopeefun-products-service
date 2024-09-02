@@ -29,11 +29,11 @@ func NewProductHandler() *productHandler {
 }
 
 func (h *productHandler) Register(router fiber.Router) {
-	router.Post("/product", middleware.AuthBearer, h.CreateProduct)
+	router.Post("/product", middleware.UserIdHeader, h.CreateProduct)
 	router.Get("/product/:id", h.GetDetailProduct)
-	router.Patch("/product/:id", middleware.AuthBearer, h.UpdateProduct)
-	router.Delete("/product/:id", middleware.AuthBearer, h.DeleteProduct)
-	router.Get("/product", middleware.AuthBearer, h.GetProducts)
+	router.Patch("/product/:id", middleware.UserIdHeader, h.UpdateProduct)
+	router.Delete("/product/:id", middleware.UserIdHeader, h.DeleteProduct)
+	router.Get("/product", middleware.UserIdHeader, h.GetProducts)
 }
 
 func (h *productHandler) CreateProduct(c *fiber.Ctx) error {
@@ -41,6 +41,7 @@ func (h *productHandler) CreateProduct(c *fiber.Ctx) error {
 		req = new(entity.CreateProductRequest)
 		ctx = c.Context()
 		v = adapter.Adapters.Validator
+		l = middleware.GetLocals(c)
 	)
 
 	if err := c.BodyParser(req); err != nil {
@@ -48,7 +49,7 @@ func (h *productHandler) CreateProduct(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(response.Error(err))
 	}
 
-	// req.UserId = c.Params("user_id")
+	req.UserId = l.UserId
 
 	if err := v.Validate(req); err != nil {
 		log.Warn().Err(err).Any("payload", req).Msg("handler::CreateProduct - Validate request body")
@@ -99,13 +100,12 @@ func (h* productHandler) UpdateProduct(c *fiber.Ctx) error {
 	)
 
 	req.Id = c.Params("id")
+	req.UserId = l.UserId
 
 	if err := c.BodyParser(req); err != nil {
 		log.Warn().Err(err).Msg("handler::UpdateProduct - Parse request body")
 		return c.Status(fiber.StatusBadRequest).JSON(response.Error(err))
 	}
-
-	req.UserId = l.UserId
 
 	if err := v.Validate(req); err != nil {
 		log.Warn().Err(err).Any("payload", req).Msg("handler::UpdateProduct - Validate request body")

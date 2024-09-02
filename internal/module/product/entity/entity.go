@@ -3,9 +3,10 @@ package entity
 import "codebase-app/pkg/types"
 
 type CreateProductRequest struct {
-	// UserId string `validate:"validate"`
+	UserId string `validate:"uuid" db:"user_id"`
 
 	Name        string  `json:"name" validate:"required,min=3,max=100" db:"name"`
+	Brand	   	string  `json:"brand" validate:"required,min=3" db:"brand"`
 	Price       float64 `json:"price" validate:"required" db:"price"`
 	Stock       int     `json:"stock" validate:"required,min=1" db:"stock"`
 	CategoryId  string  `json:"category_id" validate:"required,uuid" db:"category_id"`
@@ -43,6 +44,7 @@ type UpdateProductRequest struct {
 
 	Id          string  `params:"id" validate:"uuid" db:"id"`
 	Name        string  `json:"name" validate:"required,min=3,max=100" db:"name"`
+	Brand	   	string  `json:"brand" validate:"required,min=3" db:"brand"`
 	Price       float64 `json:"price" validate:"required" db:"price"`
 	Stock       int     `json:"stock" validate:"required,min=1" db:"stock"`
 	CategoryId  string  `json:"category_id" validate:"required,uuid" db:"category_id"`
