@@ -4,7 +4,9 @@ import (
 	"codebase-app/internal/module/shop/entity"
 	"codebase-app/internal/module/shop/ports"
 	mockPort "codebase-app/mock/module/shop/ports"
+	"codebase-app/pkg/errmsg"
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -64,12 +66,45 @@ func (suite *ServiceList) SetupTest() {
 func (u *ServiceList) TestCreateShop_Success() {
 	ctx := context.Background()
 	req := u.mockCreateShopReq
-	// u.mockShopRepo.Mock.On("IsShopOwner", ctx, req.UserId, req.ShopId).Return(true, nil)
+	u.mockShopRepo.Mock.On("IsUser", ctx, req).Return(true, nil)
 	u.mockShopRepo.Mock.On("CreateShop", ctx, req).Return(mock.Anything, nil)
 	_, err := u.service.CreateShop(ctx, req)
 
 	u.Equal(nil, err)
 }
+
+func (u *ServiceList) TestCreateShop_UserNotFound() {
+	ctx := context.Background()
+	req := u.mockCreateShopReq
+	errForbidden := errmsg.NewCustomErrors(403, errmsg.WithMessage("User not found"))
+
+	u.mockShopRepo.Mock.On("IsUser", ctx, req).Return(false, nil)
+	_, err := u.service.CreateShop(ctx, req)
+
+	u.Equal(errForbidden, err)
+}
+
+func (u *ServiceList) TestCreateShop_IsUserError() {
+	ctx := context.Background()
+	req := u.mockCreateShopReq
+	u.mockShopRepo.Mock.On("IsUser", ctx, req).Return(false, errors.New(mock.Anything))
+	
+	_, err := u.service.CreateShop(ctx, req)
+
+	u.Equal(errors.New(mock.Anything), err)
+}
+
+func (u *ServiceList) TestCreateShop_CreateShopError() {
+	ctx := context.Background()
+	req := u.mockCreateShopReq
+	u.mockShopRepo.Mock.On("IsUser", ctx, req).Return(true, nil)
+	u.mockShopRepo.Mock.On("CreateShop", ctx, req).Return(nil, errors.New(mock.Anything))
+
+	_, err := u.service.CreateShop(ctx, req)
+
+	u.Equal(errors.New(mock.Anything), err)
+}
+
 
 func TestService(t *testing.T) {
 	suite.Run(t, new(ServiceList))

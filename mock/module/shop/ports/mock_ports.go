@@ -96,3 +96,21 @@ func (m *MockShopRepo) GetShops(ctx context.Context, shop *entity.ShopsRequest) 
 
 	return &resp, err
 }
+
+func (m *MockShopRepo) IsUser(ctx context.Context, userId string) (bool, error) {
+	args := m.Called(ctx, userId)
+	var (
+		resp bool
+		err  error
+	)
+
+	if n, ok := args.Get(0).(bool); ok {
+		resp = n
+	}
+
+	if n, ok := args.Get(1).(error); ok {
+		err = n
+	}
+
+	return resp, err
+}

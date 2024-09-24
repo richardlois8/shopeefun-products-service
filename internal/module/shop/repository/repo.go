@@ -145,3 +145,18 @@ func (r *shopRepository) GetShops(ctx context.Context, req *entity.ShopsRequest)
 
 	return resp, nil
 }
+
+func (r *shopRepository) IsUser(ctx context.Context, userId string) (bool, error) {
+	var (
+		query = `SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)`
+		resp  bool
+	)
+
+	err := r.db.QueryRowContext(ctx, r.db.Rebind(query), userId).Scan(&resp)
+	if err != nil {
+		log.Error().Err(err).Str("user_id", userId).Msg("repository::IsUser - Failed to check user")
+		return false, err
+	}
+
+	return resp, nil
+}
