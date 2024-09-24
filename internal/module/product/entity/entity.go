@@ -1,6 +1,9 @@
 package entity
 
-import "codebase-app/pkg/types"
+import (
+	"codebase-app/pkg/types"
+	"time"
+)
 
 type CreateProductRequest struct {
 	UserId string `validate:"uuid" db:"user_id"`
@@ -109,4 +112,26 @@ type GetProductsResponse struct {
 type CategoryItem struct{
 	Id string `json:"id" db:"id"`
 	Name string `json:"name" db:"name"`
+}
+
+type UpsertProductResponse struct {
+	Id          string    `json:"id" db:"id"`
+	UserId      string    `json:"user_id" db:"user_id"`
+	ShopId      string    `json:"shop_id" db:"shop_id"`
+	Name        string    `json:"name" db:"name"`
+	Description *string   `json:"description" db:"description"`
+	ImageUrl    *string   `json:"image_url" db:"image_url"`
+	Price       float64   `json:"price" db:"price"`
+	Stock       int       `json:"stock" db:"stock"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
+}
+
+type UpdateProductStockRequest struct {
+	Items []UpdateStock `validate:"required,dive,required"`
+}
+
+type UpdateStock struct {
+	ProductId string `json:"product_id" validate:"required,uuid"`
+	Stock     int64  `json:"stock" validate:"required,numeric"`
 }
